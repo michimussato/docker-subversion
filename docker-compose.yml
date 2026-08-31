@@ -1,0 +1,18 @@
+services:
+  iaean-docker-subversion:
+    image: docker.io/iaean/subversion
+#    build:
+#      context: .
+#      dockerfile: ./Dockerfile
+    restart: always
+    container_name: 'subversion'
+    working_dir: '/data/svn'
+    environment:
+      SVN_LOCAL_ADMIN_USER: admin
+      SVN_LOCAL_ADMIN_PASS: pass
+      SUBVERSION_REPOS: azura/engine;azura/game;azura/raw
+    ports:
+      - "80:80"
+      - "3690:3690"
+    volumes:
+      - ../../.volumes/svn/iaean-docker-subversion/repos_iaean:/data/svn:rw
