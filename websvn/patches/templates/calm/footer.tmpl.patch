@@ -1,0 +1,11 @@
+diff --git a/templates/calm/footer.tmpl b/templates/calm/footer.tmpl
+index a0fad27..0640b24 100644
+--- a/templates/calm/footer.tmpl
++++ b/templates/calm/footer.tmpl
+@@ -1,5 +1,6 @@
+ </div>
+ <div id="footer">
++  <p><a href="https://www.memoriaworks.com" title="Memoria Works"><img src="https://avatars.githubusercontent.com/u/286479285?s=80" alt="Memoria Works Logo"></a></p>
+   <p style="padding:0; margin:0"><small>[lang:POWERED] [websvn:version] [lang:AND] <a href="http://subversion.tigris.org">Subversion</a> [websvn:svnversion] &nbsp; &nbsp; &#x2713; <a href="http://validator.w3.org/check?uri=[websvn:validationurl]">XHTML</a> &amp; <a href="http://jigsaw.w3.org/css-validator/validator?uri=[websvn:validationurl]">CSS</a></small></p>
+ </div>
+ </body>

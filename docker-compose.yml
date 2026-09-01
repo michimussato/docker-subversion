@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+      args:
+        SVN_BASE: /data/svn
     restart: always
     container_name: 'subversion'
     working_dir: '/data/svn'
@@ -13,10 +15,13 @@ services:
       # SVN_LOCAL_ADMIN_USER: admin
       # SVN_LOCAL_ADMIN_PASS: myp4ass
       SUBVERSION_REPOS: azura/engine;azura/game;azura/raw
+      DESCRIPTION_azura: Azura
     ports:
       - "80:80"
       - "3690:3690"
     volumes:
+      # make sure ../../.volumes/svn/iaean-docker-subversion/repos_iaean
+      # is owned by 100:101 (apache:apache)
       - ../../.volumes/svn/iaean-docker-subversion/repos_iaean:/data/svn:rw
       - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.htpasswd:/data/svn/.htpasswd:rw
       - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.svn.access:/data/svn/.svn.access:rw

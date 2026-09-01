@@ -2,9 +2,16 @@ FROM docker.io/alpine:3.7
 
 MAINTAINER "michimussato@etik.com"
 
-ENV SVN_BASE /data/svn
+ARG SVN_BASE
+ENV SVN_BASE=${SVN_BASE}
 
-# Install Apache with PHP, LDAP and DAV SVN
+# Install supervisord
+RUN apk add --no-cache supervisor
+COPY ./supervisord/supervisord.conf /etc/supervisord/
+RUN ls -alh
+RUN stat /etc/supervisord/supervisord.conf
+
+# Install Apache with PHP and DAV SVN
 #
 RUN apk add --no-cache apache2 apache2-webdav apache2-ldap apache2-utils && \
     apk add --no-cache php7-xml php7-apache2 && \
@@ -17,6 +24,10 @@ RUN apk add --no-cache apache2 apache2-webdav apache2-ldap apache2-utils && \
           /etc/apache2/conf.d/userdir.conf && \
     mkdir /run/apache2
 
+RUN ln -sf /dev/stderr /var/log/apache2/error.log \
+    && ln -sf /dev/stderr /var/log/apache2/access.log \
+    && ln -sf /dev/stderr /var/log/apache2/subversion.log
+
 # Install WebSVN
 #
 ENV WEBSVN_VERSION=2.3.3
@@ -25,6 +36,11 @@ RUN mkdir -p /var/www/html
 RUN git -C /var/www/html clone --branch ${WEBSVN_VERSION} --single-branch https://github.com/websvnphp/websvn.git . && \
     chown -R apache:apache /var/www/html/cache && \
     chmod -R 0700 /var/www/html/cache
+
+# Apply patches
+COPY ./websvn/patches/. /var/www/html
+RUN git -C /var/www/html apply templates/calm/footer.tmpl.patch
+RUN git -C /var/www/html apply templates/calm/index.tmpl.patch
 
 RUN mkdir -p /data/dist && \
     svn cat https://svn.apache.org/repos/asf/subversion/trunk/tools/xslt/svnindex.css > /data/dist/.svnindex.css && \
@@ -57,8 +73,5 @@ COPY svnserve.conf /etc/subversion/
 COPY docker-entrypoint.sh /entrypoint.sh
 
 WORKDIR $SVN_BASE
-VOLUME $SVN_BASE
 
-EXPOSE 80 3690
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]

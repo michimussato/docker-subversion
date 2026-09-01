@@ -108,45 +108,5 @@ fi
 
 find /data/svn -type f -name '.*' -exec chown apache:apache {} \;
 
-###
-### Start SVN services...
-###
-
-sudo -u apache -g apache /usr/bin/svnserve -d -r ${SVN_BASE} \
-  --listen-port 3690 --config-file=/etc/subversion/svnserve.conf
-
-###
-### Start apache...
-###
-
-if [[ `basename ${1}` == "httpd" ]]; then # prod
-  echo "Starting in prod mode..."
-  # The tail approach...
-  #
-  # touch /var/log/apache2/error.log
-  # touch /var/log/apache2/subversion.log
-  # touch /var/log/apache2/access.log
-  #
-  # tail -f /var/log/apache2/error.log &
-  # tail -f /var/log/apache2/subversion.log &
-  # tail -f /var/log/apache2/access.log &
-
-  # The direct approach...
-  #
-  ln -sf /dev/stderr /var/log/apache2/error.log
-  ln -sf /dev/stdout /var/log/apache2/access.log
-  ln -sf /dev/stdout /var/log/apache2/subversion.log
-
-  exec "$@" </dev/null #>/dev/null 2>&1
-else # dev
-  echo "Starting in dev mode..."
-  rm -f /var/log/apache2/error.log
-  rm -f /var/log/apache2/access.log
-  rm -f /var/log/apache2/subversion.log
-
-  httpd -k start
-fi
-
-# fallthrough...
-exec "$@"
-
+# Launch services using supervisord
+/usr/bin/supervisord -c /etc/supervisord/supervisord.conf

@@ -1,0 +1,13 @@
+diff --git a/templates/calm/index.tmpl b/templates/calm/index.tmpl
+index 9e86003..0f6d273 100644
+--- a/templates/calm/index.tmpl
++++ b/templates/calm/index.tmpl
+@@ -1,7 +1,7 @@
+      <div id="info">
+      <h2>About</h2>
+      <dl>
+-       <dd>You can customize this short message in the index.tmpl of this template in order to tell your visitors what they find in your repositories.</dd>
++       <dd>Memoria Works WebSVN Subversion interface.</dd>
+        <dd>Visit <a href="http://www.websvn.info">www.websvn.info</a> for more information about WebSVN.</dd>
+        <dd>Learn more about Subversion at <a href="http://subversion.tigris.org">subversion.tigris.org</a>.</dd>
+      </dl>
