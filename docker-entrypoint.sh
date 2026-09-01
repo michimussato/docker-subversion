@@ -88,80 +88,19 @@ EOT
     sed -i -e "s#^\# additional repo groups...#${apache_snippet}&#g" /etc/apache2/conf.d/svn.conf
   done
 
-  ###
-  ### LDAP bootstrapping...
-  ###
-
-  if [[ -n $LDAP_BindDN && -n $LDAP_BindPW ]]; then
-    # Secure LDAP stuff
-    LDAP_Use_TLS=${LDAP_Use_TLS:-no}
-    LDAP_Use_TLS=${LDAP_Use_TLS,,}
-    if [[ ${LDAP_Use_TLS} != "yes" ]]; then
-      LDAP_Use_TLS=no
-    fi
-    LDAP_TLS_VerifyCert=${LDAP_TLS_VerifyCert:-allow}
-    echo "tls_reqcert ${LDAP_TLS_VerifyCert}" >>/etc/openldap/ldap.conf
-    if [[ -n $LDAP_TLS_Ciphers ]]; then
-      echo "tls_cipher_suite ${LDAP_TLS_Ciphers}" >>/etc/openldap/ldap.conf
-    fi
-
-    # Apache LDAP
-    APACHE_LDAP_ALIAS=${APACHE_LDAP_ALIAS:-directory}
-    if [[ -n $APACHE_LDAP_URL ]]; then
-      if [[ ${LDAP_Use_TLS} == "yes" ]]; then
-        APACHE_LDAP_URL=`echo ${APACHE_LDAP_URL} | sed -e 's/^ldaps/ldap/'`
-        APACHE_LDAP_URL="${APACHE_LDAP_URL} TLS"
-      fi
-      cat <<EOT >>/etc/apache2/conf.d/ldap.conf
-<AuthnProviderAlias ldap ${APACHE_LDAP_ALIAS}>
-  AuthLDAPURL ${APACHE_LDAP_URL}
-  AuthLDAPBindDN ${LDAP_BindDN}
-  AuthLDAPBindPassword ${LDAP_BindPW}
-  AuthLDAPBindAuthoritative off
-</AuthnProviderAlias>
-EOT
-      sed -i -e "s/AuthBasicProvider file/AuthBasicProvider file ${APACHE_LDAP_ALIAS}/g" /etc/apache2/conf.d/*.conf
-    fi
-
-    # SASL LDAP
-    if [[ -n $SASL_LDAP_SERVER && -n $SASL_LDAP_SEARCHBASE && -n $SASL_LDAP_FILTER ]]; then
-      if [[ ${LDAP_Use_TLS} == "yes" ]]; then
-        SASL_LDAP_SERVER=`echo ${SASL_LDAP_SERVER} | sed -e 's/^ldaps/ldap/'`
-      fi
-      cat <<EOT >/etc/saslauthd.conf
-ldap_servers: ${SASL_LDAP_SERVER}
-ldap_bind_dn: ${LDAP_BindDN}
-ldap_bind_pw: ${LDAP_BindPW}
-ldap_search_base: ${SASL_LDAP_SEARCHBASE}
-ldap_scope: sub
-ldap_filter: ${SASL_LDAP_FILTER}
-ldap_use_sasl: no
-ldap_start_tls: ${LDAP_Use_TLS}
-EOT
-    fi
-  fi
-
   touch /.bootstrapped
 fi
 
 ###
-### Local SASL/htpasswd bootstrapping...
+### Local htpasswd bootstrapping...
 ###
 
-# Create .htpasswd and .svn.sasldb
+# Create .htpasswd
 if [[ ! -f /data/svn/.htpasswd ]]; then
   touch /data/svn/.htpasswd
 fi
-if [[ ! -f /data/svn/.svn.sasldb ]]; then
-  echo "bootstrap" | \
-  saslpasswd2 -p -f /data/svn/.svn.sasldb bootstrap
-  saslpasswd2 -d -f /data/svn/.svn.sasldb bootstrap
-fi
 # Create or update USER
 if [[ -n $SVN_LOCAL_ADMIN_USER && -n $SVN_LOCAL_ADMIN_PASS ]]; then
-  echo "${SVN_LOCAL_ADMIN_PASS}" | saslpasswd2 \
-    -p -f /data/svn/.svn.sasldb \
-    -u "Local or LDAP Account" "${SVN_LOCAL_ADMIN_USER}"
   htpasswd -mb /data/svn/.htpasswd "${SVN_LOCAL_ADMIN_USER}" \
     "${SVN_LOCAL_ADMIN_PASS}" >/dev/null 2>&1
   sed -i -e "s/^# %%LOCAL_ADMIN%%/${SVN_LOCAL_ADMIN_USER}/" /data/svn/.svn.access
@@ -170,10 +109,9 @@ fi
 find /data/svn -type f -name '.*' -exec chown apache:apache {} \;
 
 ###
-### Start SASL/SVN services...
+### Start SVN services...
 ###
 
-/usr/sbin/saslauthd -m /var/run/saslauthd -a ldap -O /etc/saslauthd.conf -n 3
 sudo -u apache -g apache /usr/bin/svnserve -d -r ${SVN_BASE} \
   --listen-port 3690 --config-file=/etc/subversion/svnserve.conf
 
@@ -182,6 +120,7 @@ sudo -u apache -g apache /usr/bin/svnserve -d -r ${SVN_BASE} \
 ###
 
 if [[ `basename ${1}` == "httpd" ]]; then # prod
+  echo "Starting in prod mode..."
   # The tail approach...
   #
   # touch /var/log/apache2/error.log
@@ -200,6 +139,7 @@ if [[ `basename ${1}` == "httpd" ]]; then # prod
 
   exec "$@" </dev/null #>/dev/null 2>&1
 else # dev
+  echo "Starting in dev mode..."
   rm -f /var/log/apache2/error.log
   rm -f /var/log/apache2/access.log
   rm -f /var/log/apache2/subversion.log

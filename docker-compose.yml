@@ -1,9 +1,9 @@
 services:
   iaean-docker-subversion:
-    image: docker.io/iaean/subversion
-#    build:
-#      context: .
-#      dockerfile: ./Dockerfile
+#    image: docker.io/iaean/subversion
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     restart: always
     container_name: 'subversion'
     working_dir: '/data/svn'
@@ -11,14 +11,13 @@ services:
       # SVN_LOCAL_ADMIN_USER and SVN_LOCAL_ADMIN_PASS
       # can be enabled if there is no pre-existing .htpasswd
       # SVN_LOCAL_ADMIN_USER: admin
-      # SVN_LOCAL_ADMIN_PASS: pass
+      # SVN_LOCAL_ADMIN_PASS: myp4ass
       SUBVERSION_REPOS: azura/engine;azura/game;azura/raw
     ports:
       - "80:80"
       - "3690:3690"
     volumes:
       - ../../.volumes/svn/iaean-docker-subversion/repos_iaean:/data/svn:rw
-#      - ../../.volumes/svn/iaean-docker-subversion/repos_iaean/.htpasswd:/data/svn/.htpasswd:ro
-#      - ../../.volumes/svn/iaean-docker-subversion/repos_iaean/.svn.access:/data/svn/.svn.access:ro
-#      - ../../.volumes/svn/iaean-docker-subversion/repos_iaean/.svn.sasldb:/data/svn/.svn.sasldb:ro
+      - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.htpasswd:/data/svn/.htpasswd:rw
+      - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.svn.access:/data/svn/.svn.access:rw
       - ../../.volumes/svn/iaean-docker-subversion/etc/subversion/svnserve.conf:/etc/subversion/svnserve.conf:ro
