@@ -1,10 +1,30 @@
 #!/bin/bash
 set -e
 
-# return true if specified directory is empty
-function directory_empty() {
-  [ -n "$(find "${1}"/ -prune -empty)" ]
+function create_ssh_host_keys() {
+  # Missing host keys manually
+  # - https://techcolleague.com/sshd-no-hostkeys-available/
+  # 2026-09-02 07:22:07,256 DEBG 'sshd' stdout output:
+  # Could not load host key: /etc/ssh/ssh_host_rsa_key
+  # Could not load host key: /etc/ssh/ssh_host_dsa_key
+  # Could not load host key: /etc/ssh/ssh_host_ecdsa_key
+  # Could not load host key: /etc/ssh/ssh_host_ed25519_key
+  # sshd: no hostkeys available -- exiting.
+  if [[ ! -e /etc/ssh/ssh_host_rsa_key ]]; then
+    ssh-keygen -N "" -t rsa -f /etc/ssh/ssh_host_rsa_key
+  fi
+  if [[ ! -e /etc/ssh/ssh_host_dsa_key ]]; then
+    ssh-keygen -N "" -t dsa -f /etc/ssh/ssh_host_dsa_key
+  fi
+  if [[ ! -e /etc/ssh/ssh_host_ecdsa_key ]]; then
+    ssh-keygen -N "" -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key
+  fi
+  if [[ ! -e /etc/ssh/ssh_host_ed25519_key ]]; then
+    ssh-keygen -N "" -t ed25519 -f /etc/ssh/ssh_host_ed25519_key
+  fi
+  return 0
 }
+create_ssh_host_keys
 
 echo Running: "$@"
 

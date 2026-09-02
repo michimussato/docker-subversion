@@ -8,8 +8,11 @@ ENV SVN_BASE=${SVN_BASE}
 # Install supervisord
 RUN apk add --no-cache supervisor
 COPY ./supervisord/supervisord.conf /etc/supervisord/
-RUN ls -alh
-RUN stat /etc/supervisord/supervisord.conf
+
+# Install OpenSSH Server
+ARG SSHD_OPTS
+ENV SSHD_OPTS=${SSHD_OPTS}
+RUN apk add --no-cache openssh-server
 
 # Install Apache with PHP and DAV SVN
 #
@@ -52,25 +55,44 @@ RUN mkdir -p $SVN_BASE && \
 
 # Apache config
 #
-COPY apache.conf/httpd.conf /etc/apache2/
-COPY apache.conf/conf.d/*.conf /etc/apache2/conf.d/
-COPY apache.conf/icons/* /var/www/localhost/icons/
+COPY ./apache.conf/httpd.conf /etc/apache2/
+COPY ./apache.conf/conf.d/*.conf /etc/apache2/conf.d/
+COPY ./apache.conf/icons/* /var/www/localhost/icons/
 
-COPY apache.conf/header.html /data/dist/.header.html
-COPY apache.conf/footer.html /data/dist/.footer.html
-COPY apache.conf/style.css /data/dist/.style.css
-COPY svn.access /data/dist/.svn.access
+COPY ./apache.conf/header.html /data/dist/.header.html
+COPY ./apache.conf/footer.html /data/dist/.footer.html
+COPY ./apache.conf/style.css /data/dist/.style.css
+COPY ./svn.access /data/dist/.svn.access
 
 # WebSVN config
 #
-COPY websvn.conf /var/www/html/include/config.php
+COPY ./websvn.conf /var/www/html/include/config.php
 # COPY websvn.conf /var/www/localhost/htdocs/websvn/include/config.php
 
 # svnserve config
 #
-COPY svnserve.conf /etc/subversion/
+COPY ./svnserve.conf /etc/subversion/
+# SVN_SHELL
+COPY ./static/usr/local/bin/svnonly /usr/local/bin/
+RUN chown 0:0 /usr/local/bin/svnonly
+RUN chmod 755 /usr/local/bin/svnonly
+# SVN Users
+# Todo
+#  - [ ] This needs to be adjusted for
+#        the new setup first before
+#        it can be used.
+#  - [ ] New usage will be something like:
+#        - `docker exec -it subversion svnusers help
+#        - `docker exec -it subversion svnusers add <user> <group> "<ssh_public_key>"
+# COPY ./static/usr/local/bin/svnusers /usr/local/bin/
+# RUN chown 0:0 /usr/local/bin/svnusers
+# RUN chmod 755 /usr/local/bin/svnusers
+#
+# Dani's svnserve wrapper
+# is no longer needed. umask
+# is set via supervisord
 
-COPY docker-entrypoint.sh /entrypoint.sh
+COPY ./docker-entrypoint.sh /entrypoint.sh
 
 WORKDIR $SVN_BASE
 
