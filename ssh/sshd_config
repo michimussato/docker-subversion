@@ -121,10 +121,3 @@ Subsystem       sftp    /usr/lib/openssh/sftp-server
 #       AllowTcpForwarding no
 #       PermitTTY no
 #       ForceCommand cvs server
-
-# fileadmin user
-Match User fileadmin
-    ChrootDirectory /srv/downloads
-    ForceCommand internal-sftp
-    AllowTcpForwarding no
-    X11Forwarding no
