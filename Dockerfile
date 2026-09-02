@@ -62,16 +62,15 @@ COPY ./apache.conf/icons/* /var/www/localhost/icons/
 COPY ./apache.conf/header.html /data/dist/.header.html
 COPY ./apache.conf/footer.html /data/dist/.footer.html
 COPY ./apache.conf/style.css /data/dist/.style.css
-COPY ./svn.access /data/dist/.svn.access
+COPY ./svn/svn.access /data/dist/.svn.access
 
 # WebSVN config
 #
-COPY ./websvn.conf /var/www/html/include/config.php
-# COPY websvn.conf /var/www/localhost/htdocs/websvn/include/config.php
+COPY ./static/var/www/html/include/config.php /var/www/html/include/config.php
 
 # svnserve config
 #
-COPY ./svnserve.conf /etc/subversion/
+COPY ./static/etc/subversion/svnserve.conf /etc/subversion/
 # SVN_SHELL
 COPY ./static/usr/local/bin/svnonly /usr/local/bin/
 RUN chown 0:0 /usr/local/bin/svnonly

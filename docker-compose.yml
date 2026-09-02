@@ -28,4 +28,4 @@ services:
       - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.htpasswd:/data/svn/.htpasswd:rw
       - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.svn.access:/data/svn/.svn.access:rw
       - ../../.volumes/svn/iaean-docker-subversion/etc/subversion/svnserve.conf:/etc/subversion/svnserve.conf:ro
-      - ./static/ssh/sshd_config:/data/sshd_config:ro
+      - ./ssh/sshd_config:/data/sshd_config:ro
