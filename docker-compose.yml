@@ -21,6 +21,8 @@ services:
     ports:
       - "80:80"
       - "3690:3690"
+      # set SSH to default 22 in conf and expose arbitrarily here
+      - "41937:22"
     volumes:
       # make sure ../../.volumes/svn/iaean-docker-subversion/repos_iaean
       # is owned by 100:101 (apache:apache)
