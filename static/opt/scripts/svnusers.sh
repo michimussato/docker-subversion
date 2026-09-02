@@ -4,7 +4,7 @@
 #  Configuration
 # ========================================
 PROG=$(basename "$0")
-SVN_ROOT="/srv/svn"
+SVN_ROOT="${SVN_BASE}"
 REPOS=("azura/game" "azura/raw" "azura/engine")
 MASTER_AUTHZ="${SVN_ROOT}/${REPOS[0]}/conf/authz"
 SVN_SHELL="/usr/local/bin/svnonly"
