@@ -1,0 +1,3 @@
+#!/bin/bash
+# A "SVN Only Shell" by Dani
+exec /usr/bin/svnserve -t --root=/srv/svn --tunnel-user="$USER"
