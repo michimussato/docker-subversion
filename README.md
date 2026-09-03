@@ -110,7 +110,7 @@ docker \
     compose \
     --progress=plain \
     --file $(pwd)/docker-compose/sites/memoriaworks/svn/docker-subversion/docker-compose.yml \
-    --project-name iaean-docker-subversion \
+    --project-name memoriaworks-docker-subversion \
     up \
     --build \
     --remove-orphans \
@@ -125,7 +125,7 @@ docker \
     compose \
     --progress=plain \
     --file $(pwd)/docker-compose/sites/memoriaworks/svn/docker-subversion/docker-compose.yml \
-    --project-name iaean-docker-subversion \
+    --project-name memoriaworks-docker-subversion \
     logs \
     --follow
 ```
@@ -137,7 +137,7 @@ docker \
     compose \
     --progress=plain \
     --file $(pwd)/docker-compose/sites/memoriaworks/svn/docker-subversion/docker-compose.yml \
-    --project-name iaean-docker-subversion \
+    --project-name memoriaworks-docker-subversion \
     down
 ```
 
