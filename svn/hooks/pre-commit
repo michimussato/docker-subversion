@@ -1,0 +1,81 @@
+#!/bin/bash
+# Pre-commit hook: validate commit messages + reject uppercase extensions
+REPOS="$1"
+TXN="$2"
+
+# ========================================
+#  Commit Message Validation
+# ========================================
+COMMIT_MSG=$(svnlook log -t "$TXN" "$REPOS")
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+
+TYPES="feat|fix|art|audio|level|vfx|config|chore"
+
+# Check format: type: description
+if ! echo "$FIRST_LINE" | grep -qE "^($TYPES):\s.+"; then
+	echo "ERROR: Invalid commit message format." >&2
+	echo "" >&2
+	echo "  Expected: <type>: <description>" >&2
+	echo "  Got:      $FIRST_LINE" >&2
+	echo "" >&2
+	echo "  Valid types: feat, fix, art, audio, level, vfx, config, chore" >&2
+	echo "" >&2
+	echo "  Examples:" >&2
+	echo "    feat: add parry system to melee combat" >&2
+	echo "    fix: prevent health bar overflow" >&2
+	echo "    art: add idle animation set" >&2
+	exit 1
+fi
+
+# Extract description (after ": ")
+DESCRIPTION=$(echo "$FIRST_LINE" | sed 's/^[^:]*:\s*//')
+
+# Check description starts with lowercase
+if echo "$DESCRIPTION" | grep -qE "^[A-Z]"; then
+	echo "ERROR: Description must start with a lowercase letter." >&2
+	echo "  Got: $DESCRIPTION" >&2
+	exit 1
+fi
+
+# Check description doesn't end with a period
+if echo "$DESCRIPTION" | grep -qE "\.$"; then
+	echo "ERROR: Description must not end with a period." >&2
+	echo "  Got: $DESCRIPTION" >&2
+	exit 1
+fi
+
+# Check first line length
+if [ ${#FIRST_LINE} -gt 72 ]; then
+	echo "ERROR: Commit message must be under 72 characters (got ${#FIRST_LINE})." >&2
+	echo "  Got: $FIRST_LINE" >&2
+	echo "" >&2
+	echo "  Tip: keep the first line short and add details in a body after a blank line:" >&2
+	echo "    feat: add directional gravity zones" >&2
+	echo "" >&2
+	echo "    Supports multiple directions and nesting with priority ordering." >&2
+	exit 1
+fi
+
+# ========================================
+#  Uppercase Extension Check
+# ========================================
+svnlook changed -t "$TXN" "$REPOS" | while read -r status path; do
+	[ "$status" = "D" ] && continue
+
+	filename=$(basename "$path")
+	ext="${filename##*.}"
+	[ "$ext" = "$filename" ] && continue
+
+	if echo "$ext" | grep -q '[A-Z]'; then
+		ext_lower=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
+		echo "ERROR: Uppercase extension not allowed: $path" >&2
+		echo "  Rename to lowercase: .${ext} -> .${ext_lower}" >&2
+		exit 1
+	fi
+done
+
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+
+exit 0

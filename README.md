@@ -25,6 +25,10 @@
         * [From Live Server](#from-live-server)
       * [Load from Archive](#load-from-archive)
       * [From live Repo (direct transfer)](#from-live-repo-direct-transfer)
+    * [Repo Operations](#repo-operations)
+      * [Props](#props)
+        * [List](#list)
+        * [Compare `old_repo` `new_repo`](#compare-old_repo-new_repo)
     * [Setting local user passwords](#setting-local-user-passwords)
   * [TODO](#todo)
   * [Towards SSL/TLS and Alpine](#towards-ssltls-and-alpine)
@@ -349,6 +353,31 @@ svnrdump \
     --password=<password> \
     load \
     http://localhost:80/svn/<group>/<repo>
+```
+
+### Repo Operations
+
+#### Props
+
+##### List
+
+```shell
+# svn proplist --help
+svn proplist \
+    --verbose \
+    --recursive \
+    --depth=immediates \
+    --username=<user> \
+    --password=<password> \
+    http://localhost:80/svn/<group>/<repo>
+```
+
+##### Compare `old_repo` `new_repo`
+
+```shell
+diff \
+    <(svn proplist --verbose --recursive --depth=immediates svn+memoriaworks://<user>@svn.memoriaworks.com/<group>/<repo>) \
+    <(svn proplist --verbose --recursive --depth=immediates --username=<user> --password=<password> http://localhost:80/svn/<group>/<repo>)
 ```
 
 ### Setting local user passwords

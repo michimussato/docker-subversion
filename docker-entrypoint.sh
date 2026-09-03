@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+echo Running: "$@"
+
 function create_ssh_host_keys() {
   # Missing host keys manually
   # - https://techcolleague.com/sshd-no-hostkeys-available/
@@ -25,8 +27,6 @@ function create_ssh_host_keys() {
   return 0
 }
 create_ssh_host_keys
-
-echo Running: "$@"
 
 # Avoid destroying bootstrapping by simple start/stop
 if [[ ! -e /.bootstrapped ]]; then
@@ -89,6 +89,26 @@ EOT
     else
       echo "Skipping invalid: ${r}"
     fi
+
+    # Linking custom hooks into each <repo>/hooks/
+    # Not sure if it would be better to just
+    # copy the hooks over to the target repos.
+    # The links persist even if the target files
+    # disappear later. Maybe SVN will complain
+    # about the broken links.
+    if [[ -d /data/hooks ]]
+    then
+      for h in /data/hooks/*
+      do
+        pushd ${SVN_BASE}/${DIR}/${REP}/hooks &> /dev/null || exit 1
+        echo "Linking hook ${h} into ${SVN_BASE}/${DIR}/${REP}/hooks..."
+        ln -s "${h}" $(basename "${h}") &> /dev/null && echo "Linked successfully." || echo "Target file exists. Link not created."
+        popd &> /dev/null || exit 1
+      done
+    else
+      echo "No /data/hooks directory mounted."
+    fi
+
   done
   IFS=$OIFS
 

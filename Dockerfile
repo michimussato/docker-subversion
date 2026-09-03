@@ -5,6 +5,15 @@ MAINTAINER "michimussato@etik.com"
 ARG SVN_BASE
 ENV SVN_BASE=${SVN_BASE}
 
+ARG SVN_GROUP
+ENV SVN_GROUP=${SVN_GROUP}
+
+ARG SVN_SHELL
+ENV SVN_SHELL=${SVN_SHELL}
+
+# Install base packages
+RUN apk add --no-cache sudo bash shadow
+
 # Install supervisord
 RUN apk add --no-cache supervisor
 COPY ./supervisord/supervisord.conf /etc/supervisord/
@@ -14,12 +23,20 @@ ARG SSHD_OPTS
 ENV SSHD_OPTS=${SSHD_OPTS}
 RUN apk add --no-cache openssh-server
 
+# Install subversion
+# Add SVN_GROUP, we want GID to be 1001
+# Needs to be run first because it seems to
+# get created transparently during the installation
+# process.
+RUN addgroup -g 1001 ${SVN_GROUP}
+# chgrp -R svnusers /srv/svn/azura
+# chmod -R g+rw /srv/svn/azura
+# find /srv/svn/azura -type d -exec chmod g+s {} \;
+RUN apk add --no-cache subversion
+
 # Install Apache with PHP and DAV SVN
-#
 RUN apk add --no-cache apache2 apache2-webdav apache2-ldap apache2-utils && \
-    apk add --no-cache php7-xml php7-apache2 && \
-    apk add --no-cache subversion mod_dav_svn && \
-    apk add --no-cache sudo bash && \
+    apk add --no-cache php7-xml php7-apache2 mod_dav_svn && \
     rm -f /etc/apache2/conf.d/info.conf \
           /etc/apache2/conf.d/languages.conf \
           /etc/apache2/conf.d/dav.conf \
@@ -72,21 +89,32 @@ COPY ./static/var/www/html/include/config.php /var/www/html/include/config.php
 #
 COPY ./static/etc/subversion/svnserve.conf /etc/subversion/
 # SVN_SHELL
-COPY ./static/usr/local/bin/svnonly /usr/local/bin/
-RUN chown 0:0 /usr/local/bin/svnonly
-RUN chmod 755 /usr/local/bin/svnonly
-# SVN Users
+COPY ./static/usr/local/bin/svnonly /usr/local/bin/${SVN_SHELL}
+RUN chown 0:0 /usr/local/bin/${SVN_SHELL}
+RUN chmod 755 /usr/local/bin/${SVN_SHELL}
+# Add `svnonly` to allowed shells
+RUN echo "/usr/local/bin/${SVN_SHELL}" | tee -a /etc/shells
+
+# Password:
+# chsh: PAM: Authentication failure
+# adding /usr/sbin/nologin to valid shells should prevent this
+# Alpine is: /sbin/nologin
+# No effect: RUN echo "/sbin/nologin" | tee -a /etc/shells
+COPY ./static/etc/pam.d/chsh /etc/pam.d/
+RUN chown 0:0 /etc/pam.d/chsh
+RUN chmod 644 /etc/pam.d/chsh
+
+# svnusers script
 # Todo
-#  - [ ] This needs to be adjusted for
+#  - [x] This needs to be adjusted for
 #        the new setup first before
 #        it can be used.
-#  - [ ] New usage will be something like:
-#        - `docker exec -it subversion svnusers help
-#        - `docker exec -it subversion svnusers add <user> <group> "<ssh_public_key>"
-# COPY ./static/usr/local/bin/svnusers /usr/local/bin/
-# RUN chown 0:0 /usr/local/bin/svnusers
-# RUN chmod 755 /usr/local/bin/svnusers
-#
+#  - [x] New usage will be something like:
+#        - `docker exec -it subversion svnusers help`
+#        - `docker exec -it subversion svnusers add <user> <group> "<ssh_public_key>"`
+COPY ./static/usr/local/bin/svnusers /usr/local/bin/
+RUN chown 0:0 /usr/local/bin/svnusers
+RUN chmod 755 /usr/local/bin/svnusers
 # Dani's svnserve wrapper
 # is no longer needed. umask
 # is set via supervisord

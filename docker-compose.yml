@@ -2,10 +2,13 @@ services:
   iaean-docker-subversion:
 #    image: docker.io/iaean/subversion
     build:
+      no_cache: true
       context: .
       dockerfile: ./Dockerfile
       args:
         SVN_BASE: /data/svn
+        SVN_GROUP: svnusers
+        SVN_SHELL: svnonly
         SSHD_OPTS: ""
     restart: always
     container_name: 'subversion'
@@ -18,6 +21,7 @@ services:
       SUBVERSION_REPOS: azura/engine;azura/game;azura/raw
       DESCRIPTION_azura: Azura
       SSHD_OPTS: "-f /data/sshd_config"
+      MASTER_AUTHZ: /data/svn/.svn.access
     ports:
       - "80:80"
       - "3690:3690"
@@ -31,3 +35,7 @@ services:
       - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.svn.access:/data/svn/.svn.access:rw
       - ../../.volumes/svn/iaean-docker-subversion/etc/subversion/svnserve.conf:/etc/subversion/svnserve.conf:ro
       - ./ssh/sshd_config:/data/sshd_config:ro
+      - ./svn/hooks:/data/hooks:ro
+      # mount /home directory with its contents for testing
+      # Todo: move /home of host to .volumes/svn as they are no longer relevant system wide
+      - ../../.volumes/svn/iaean-docker-subversion/home:/home:rw

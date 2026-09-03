@@ -4,11 +4,7 @@
 #  Configuration
 # ========================================
 PROG=$(basename "$0")
-SVN_ROOT="${SVN_BASE}"
-REPOS=("azura/game" "azura/raw" "azura/engine")
-MASTER_AUTHZ="${SVN_ROOT}/${REPOS[0]}/conf/authz"
 SVN_SHELL="/usr/local/bin/svnonly"
-SVN_GROUP="svnusers"
 
 # Authz groups — these control per-path repo permissions (not system groups)
 # They must match the [groups] section in the authz file
@@ -94,6 +90,9 @@ setup_ssh() {
     import_key "$username" "$key_input"
 }
 
+# sed: can't move '/data/svn/.svn.accessBPHAiO' to '/data/svn/.svn.access': Resource busy
+# https://stackoverflow.com/questions/12696125/sed-edit-file-in-place
+
 add_to_authz() {
     local username=$1
     local group=$2
@@ -103,16 +102,24 @@ add_to_authz() {
         exit 1
     fi
 
-    if grep -P "^${group}\s*=" "$MASTER_AUTHZ" | grep -qw "$username"; then
+    if grep -E "^${group}\s*=" "$MASTER_AUTHZ" | grep -qw "$username"; then
         echo "[OK] $username already in authz group '$group'"
     else
-        if grep -qP "^${group}\s*=" "$MASTER_AUTHZ"; then
+        if grep -E "^${group}\s*=" "$MASTER_AUTHZ"; then
+            # assuming working director /data/svn
+            local TEMPDIR
+            TEMPDIR=$(mktemp -d)
+            echo $TEMPDIR
             local members
-            members=$(grep -P "^${group}\s*=" "$MASTER_AUTHZ" | sed "s/^${group}\s*=\s*//" | sed 's/\s//g')
+            members=$(grep -E "^${group}\s*=" "$MASTER_AUTHZ" | sed "s/^${group}\s*=\s*//" | sed 's/\s//g')
             if [ -z "$members" ]; then
-                sed -i "s/^${group}\s*=.*/${group} = ${username}/" "$MASTER_AUTHZ"
+                cp "$MASTER_AUTHZ" $TEMPDIR
+                sed -i "s/^${group}\s*=.*/${group} = ${username}/" $TEMPDIR/.svn.access
+                cat $TEMPDIR/.svn.access > "$MASTER_AUTHZ"
             else
-                sed -i "s/^${group}\s*=.*/${group} = ${members},${username}/" "$MASTER_AUTHZ"
+                cp "$MASTER_AUTHZ" $TEMPDIR
+                sed -i "s/^${group}\s*=.*/${group} = ${members},${username}/" $TEMPDIR/.svn.access
+                cat $TEMPDIR/.svn.access > "$MASTER_AUTHZ"
             fi
             echo "[OK] Added $username to authz group '$group'"
         else
@@ -120,36 +127,23 @@ add_to_authz() {
             exit 1
         fi
     fi
-
-    sync_authz
 }
 
 remove_from_authz() {
     local username=$1
+    local TEMPDIR
+    TEMPDIR=$(mktemp -d)
+    echo $TEMPDIR
 
     if ! [ -f "$MASTER_AUTHZ" ]; then
         echo "[ERROR] Authz file not found: $MASTER_AUTHZ"
         exit 1
     fi
 
-    sed -i -E "s/,${username}//g; s/${username},//g; s/=\s*${username}$/= /g" "$MASTER_AUTHZ"
+    cp "$MASTER_AUTHZ" $TEMPDIR
+    sed -i -E "s/,${username}//g; s/${username},//g; s/=\s*${username}$/= /g" $TEMPDIR/.svn.access
+    cat $TEMPDIR/.svn.access > "$MASTER_AUTHZ"
     echo "[OK] Removed $username from all authz groups"
-
-    sync_authz
-}
-
-sync_authz() {
-    # Normalize: strip spaces around commas in group lines
-    sed -i -E '/^\[groups\]/,/^\[/{/^[a-z]/s/\s*,\s*/,/g}' "$MASTER_AUTHZ"
-
-    for repo in "${REPOS[@]}"; do
-        local target="${SVN_ROOT}/${repo}/conf/authz"
-        if [ "$target" != "$MASTER_AUTHZ" ]; then
-            cp "$MASTER_AUTHZ" "$target"
-        fi
-    done
-    chgrp -R $SVN_GROUP "$SVN_ROOT"
-    echo "[OK] Authz synced across all repos"
 }
 
 list_users() {
@@ -180,15 +174,23 @@ cmd_add() {
 
     if id "$username" &>/dev/null; then
         echo "[OK] System user $username already exists"
-        usermod -aG $SVN_GROUP "$username"
     else
-        useradd -m -s "$SVN_SHELL" -G $SVN_GROUP "$username"
+        # Debian
+        # useradd -m -s "$SVN_SHELL" -G $SVN_GROUP "$username"
+        # Alpine
+        # - don't assign a password
+        # - system user?
+        addgroup $username
+        adduser -D -h /home/$username -s "$SVN_SHELL" -G $username $username
         if [ $? -ne 0 ]; then
             echo "[ERROR] Failed to create user $username"
             exit 1
         fi
         echo "[OK] Created system user $username (shell: $SVN_SHELL)"
     fi
+
+    # append user to group SVN_GROUP
+    usermod -aG $SVN_GROUP "$username"
 
     setup_ssh "$username" "$key_input"
     add_to_authz "$username" "$group"
@@ -241,7 +243,7 @@ cmd_remove() {
 
     if id "$username" &>/dev/null; then
         usermod -L "$username"
-        chsh -s /usr/sbin/nologin "$username"
+        chsh -s /sbin/nologin "$username"
         echo "[OK] User $username locked and shell disabled"
     fi
 
