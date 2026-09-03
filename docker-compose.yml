@@ -1,6 +1,5 @@
 services:
-  iaean-docker-subversion:
-#    image: docker.io/iaean/subversion
+  memoriaworks-docker-subversion:
     build:
       no_cache: true
       context: .
@@ -10,7 +9,7 @@ services:
         SVN_GROUP: svnusers
         SVN_SHELL: svnonly
         SSHD_OPTS: ""
-    restart: always
+    restart: unless-stopped
     container_name: 'subversion'
     working_dir: '/data/svn'
     environment:
