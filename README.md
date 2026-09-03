@@ -249,6 +249,11 @@ svn checkout \
     ~/path/to/local/repo_svn
 ```
 
+##### SVN over SSH
+
+- [Windows](https://app.clickup.com/90152125381/v/dc/2kyqrgy5-2495/2kyqrgy5-535?block=block-a6406d7f-8bfb-41a4-b324-d6c528eaa4a4)
+- [Linux](https://app.clickup.com/90152125381/v/dc/2kyqrgy5-2495/2kyqrgy5-535?block=block-3b9e61e3-1335-461b-9972-2ad0d913ba35)
+
 ##### HTTP/WebDAV
 
 ```shell

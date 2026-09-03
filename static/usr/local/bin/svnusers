@@ -197,7 +197,10 @@ cmd_add() {
 
     echo ""
     echo "[DONE] User $username added to authz group '$group'"
-    echo "  Checkout: svn+ssh://${username}@svn.memoriaworks.com/azura/game/trunk"
+    echo "  Checkout:"
+    echo "    SVN over SSH: svn+ssh://${username}@svn.memoriaworks.com/azura/game/trunk"
+    echo "    SVN over SSH with Linux using non standard SSH port, see: https://app.clickup.com/t/90152125381/86ca8dewn?comment=90150248337279"
+    echo "    HTTP/HTTPS (WebDAV), see (WIP): https://github.com/michimussato/docker-subversion/blob/master/README.md#checkout-repo"
 }
 
 cmd_key() {
