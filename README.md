@@ -9,6 +9,9 @@
     * [Persistent storage](#persistent-storage)
     * [Repository groups](#repository-groups)
     * [Autoconfiguration via environment](#autoconfiguration-via-environment)
+  * [Clone](#clone)
+    * [Add as Git Submodule](#add-as-git-submodule)
+    * [Update Submodule](#update-submodule)
   * [Compose](#compose)
     * [Up](#up)
     * [Logs](#logs)
@@ -102,6 +105,31 @@ Spaces in group or repo name are not allowed. See the examples below.
 | DESCRIPTION_**dev**    | recommended  |              | Development app code & config                              |
 | SVN_LOCAL_ADMIN_USER   | recommended  |              | admin                                                      |
 | SVN_LOCAL_ADMIN_PASS   | recommended  |              | password                                                   |
+
+## Clone
+
+### Add as Git Submodule
+
+```shell
+git submodule add --branch=master https://github.com/michimussato/docker-subversion.git docker-compose/sites/memoriaworks/svn/docker-subversion
+```
+
+### Update Submodule
+
+```shell
+git submodule update --verbose docker-compose/sites/memoriaworks/svn/docker-subversion
+# ❯ git status
+# On branch main
+# Your branch is up to date with 'origin/main'.
+# 
+# Changes to be committed:
+#   (use "git restore --staged <file>..." to unstage)
+#         new file:   docker-compose/sites/memoriaworks/svn/docker-subversion
+# 
+# git add docker-compose/sites/memoriaworks/svn/docker-subversion
+# git commit -m "adds submodule file"
+# git push
+```
 
 ## Compose
 
