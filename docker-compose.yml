@@ -22,10 +22,10 @@ services:
       SSHD_OPTS: "-f /data/sshd_config"
       MASTER_AUTHZ: /data/svn/.svn.access
     ports:
-      - "80:80"
+      - "95:80"
       - "3690:3690"
       # set SSH to default 22 in conf and expose arbitrarily here
-      - "41937:22"
+      - "41837:22"
     volumes:
       # make sure ../../.volumes/svn/iaean-docker-subversion/repos_iaean
       # is owned by 100:101 (apache:apache)
