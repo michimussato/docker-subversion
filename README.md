@@ -18,6 +18,7 @@
     * [Accessing your repositories](#accessing-your-repositories)
       * [Checkout Repo](#checkout-repo)
         * [SVN](#svn)
+        * [SVN over SSH](#svn-over-ssh)
         * [HTTP/WebDAV](#httpwebdav)
     * [Importing your repositories](#importing-your-repositories)
       * [Dump to Archive](#dump-to-archive)
@@ -29,6 +30,7 @@
       * [Props](#props)
         * [List](#list)
         * [Compare `old_repo` `new_repo`](#compare-old_repo-new_repo)
+    * [Action Plan to replace deprecated SVN Server](#action-plan-to-replace-deprecated-svn-server)
     * [Setting local user passwords](#setting-local-user-passwords)
   * [TODO](#todo)
   * [Towards SSL/TLS and Alpine](#towards-ssltls-and-alpine)
@@ -384,6 +386,25 @@ diff \
     <(svn proplist --verbose --recursive --depth=immediates svn+memoriaworks://<user>@svn.memoriaworks.com/<group>/<repo>) \
     <(svn proplist --verbose --recursive --depth=immediates --username=<user> --password=<password> http://localhost:80/svn/<group>/<repo>)
 ```
+
+### Action Plan to replace deprecated SVN Server
+
+- [ ] Add `docker-compose/sites/memoriaworks/svn/docker-subversion` as
+      Git submodule
+- Synchronize `memoriaworks:/home` with `.volumes/svn/[...]/home`
+  - [ ] symbolic linking, or
+    - can corrupt existing data
+    - ```shell
+      ln -s /home $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/.volumes/svn/iaean-docker-subversion/home
+      ```
+  - [ ] rsyncing?
+    - duplicates data but leaves origin untouched
+    - probably to better approach; at least for testing
+    - ```shell
+      sudo rsync -rhavz --progress /home/ $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/.volumes/svn/iaean-docker-subversion/home/ --dry-run
+      ```
+- [ ] Import/synchronize existing repositories ([Importing your repositories](#importing-your-repositories)
+- [ ] Edit firewall rule for port `41937`
 
 ### Setting local user passwords
 

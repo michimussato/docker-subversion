@@ -35,6 +35,41 @@ services:
       - ../../.volumes/svn/iaean-docker-subversion/etc/subversion/svnserve.conf:/etc/subversion/svnserve.conf:ro
       - ./ssh/sshd_config:/data/sshd_config:ro
       - ./svn/hooks:/data/hooks:ro
+      # /home
+      #
+      # sudo rsync -rhav --progress /home/ $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/.volumes/svn/iaean-docker-subversion/home/ --dry-run
+      #
+      # or
+      #
       # mount /home directory with its contents for testing
       # Todo: move /home of host to .volumes/svn as they are no longer relevant system wide
       - ../../.volumes/svn/iaean-docker-subversion/home:/home:rw
+      # /etc/{shadow,shadow-}
+      #
+      # sudo touch ./static/etc/{shadow,shadow-}
+      # sudo chown 0:42 ./static/etc/{shadow,shadow-}
+      # sudo chmod 0640 ./static/etc/{shadow,shadow-}
+      #
+      # or
+      #
+      # sudo cp -rp /etc/{shadow,shadow-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/
+      # or
+      # ln -s /etc/{shadow,shadow-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/{shadow,shadow-}
+      # or
+      # sudo rsync -hv --progress /etc/{shadow,shadow-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/ --dry-run
+      - ./static/etc/shadow:/etc/shadow:rw
+      - ./static/etc/shadow-:/etc/shadow-:rw
+      # /etc/{group,group-}
+      # sudo touch ./static/etc/{group,group-}
+      # sudo chown 0:0 ./static/etc/{group,group-}
+      # sudo chmod 0644 ./static/etc/{group,group-}
+      #
+      # or
+      #
+      # sudo cp -rp /etc/{group,group-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/
+      # or
+      # ln -s /etc/{group,group-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/{group,group-}
+      # or
+      # sudo rsync -hv --progress /etc/{group,group-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/ --dry-run
+      - ./static/etc/group:/etc/group:rw
+      - ./static/etc/group-:/etc/group-:rw
