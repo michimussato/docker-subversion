@@ -27,23 +27,23 @@ services:
       # set SSH to default 22 in conf and expose arbitrarily here
       - "41837:22"
     volumes:
-      # make sure ../../.volumes/svn/iaean-docker-subversion/repos_iaean
+      # make sure ../../.volumes/svn/docker-subversion/repos_iaean
       # is owned by 100:101 (apache:apache)
-      - ../../.volumes/svn/iaean-docker-subversion/repos_iaean:/data/svn:rw
-      - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.htpasswd:/data/svn/.htpasswd:rw
-      - ../../.volumes/svn/iaean-docker-subversion/secrets/__SECRET__.svn.access:/data/svn/.svn.access:rw
-      - ../../.volumes/svn/iaean-docker-subversion/etc/subversion/svnserve.conf:/etc/subversion/svnserve.conf:ro
+      - ../../.volumes/svn/docker-subversion/repos_iaean:/data/svn:rw
+      - ../../.volumes/svn/docker-subversion/secrets/__SECRET__.htpasswd:/data/svn/.htpasswd:rw
+      - ../../.volumes/svn/docker-subversion/secrets/__SECRET__.svn.access:/data/svn/.svn.access:rw
+      - ../../.volumes/svn/docker-subversion/etc/subversion/svnserve.conf:/etc/subversion/svnserve.conf:ro
       - ./ssh/sshd_config:/data/sshd_config:ro
       - ./svn/hooks:/data/hooks:ro
       # /home
       #
-      # sudo rsync -rhav --progress /home/ $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/.volumes/svn/iaean-docker-subversion/home/ --dry-run
+      # sudo rsync -rhav --progress /home/ $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/.volumes/svn/docker-subversion/home/ --dry-run
       #
       # or
       #
       # mount /home directory with its contents for testing
       # Todo: move /home of host to .volumes/svn as they are no longer relevant system wide
-      - ../../.volumes/svn/iaean-docker-subversion/home:/home:rw
+      - ../../.volumes/svn/docker-subversion/home:/home:rw
       # /etc/{shadow,shadow-}
       #
       # sudo touch ./static/etc/{shadow,shadow-}
