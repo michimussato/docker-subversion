@@ -73,3 +73,6 @@ services:
       # sudo rsync -hv --progress /etc/{group,group-} $(git rev-parse --show-toplevel)/docker-compose/sites/memoriaworks/svn/docker-subversion/static/etc/ --dry-run
       - ./static/etc/group:/etc/group:rw
       - ./static/etc/group-:/etc/group-:rw
+      # /etc/sudoers ???
+      # /etc/sudoers.d ???
+      # /etc/ufw ???
